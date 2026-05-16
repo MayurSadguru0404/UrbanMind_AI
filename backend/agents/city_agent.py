@@ -33,6 +33,22 @@ Give travel advice.
 """
 
     ai_explanation = generate_hf_insight(prompt)
+    
+    if (
+        not ai_explanation
+        or "City:" in ai_explanation
+        or len(ai_explanation)<15
+    ):
+        risk=analysis["traffic_risk"]
+        weather=analysis["weather_condition"]
+        temp=analysis["temperature"]
+        
+        ai_explanation=(
+            f"{city} currently has {weather} weather"
+            f"with a temperature of {temp}."
+            f"Traffic risk is {risk}."
+            f"Travel carefully during busy hours"
+        )
 
     response = {
     "city": city,

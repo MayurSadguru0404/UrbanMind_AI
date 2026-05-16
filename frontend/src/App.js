@@ -22,7 +22,7 @@ function App() {
 
     if (!query.trim()) return;
 
-    // clear old response
+    // clear ONLY previous response
     setChatResponse(null);
 
     try {
@@ -45,9 +45,6 @@ function App() {
       const data = await response.json();
 
       setChatResponse(data);
-
-      // clear input field
-      setQuery("");
 
     } catch (error) {
 
