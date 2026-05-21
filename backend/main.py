@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.routes import router
 
+from backend.services.monitor_service import refresh_all_cities
+
 app = FastAPI()
 
 app.add_middleware(
@@ -14,6 +16,12 @@ app.add_middleware(
 )
 
 app.include_router(router)
+
+
+@app.on_event("startup")
+def startup_event():
+
+    refresh_all_cities()
 
 @app.get("/")
 def home():

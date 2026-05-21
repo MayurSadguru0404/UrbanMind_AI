@@ -1,31 +1,41 @@
 import requests
-from backend.core.config import WEATHER_API_KEY
+import os
 
-BASE_URL = "http://api.openweathermap.org/data/2.5/weather"
+from dotenv import load_dotenv
 
-def get_weather(city: str):
-    params = {
-        "q": city,
-        "appid": WEATHER_API_KEY,
-        "units": "metric"
-    }
+load_dotenv()
 
-    response = requests.get(BASE_URL, params=params)
+API_KEY = os.getenv("WEATHER_API_KEY")
 
-    data = response.json()
 
-    if response.status_code != 200:
+def get_weather(city):
+
+    try:
+
+        url = (
+            f"https://api.openweathermap.org/data/2.5/weather"
+            f"?q={city}&appid={API_KEY}&units=metric"
+        )
+
+        response = requests.get(url)
+
+        data = response.json()
+
+        if response.status_code != 200:
+
+            return {
+                "error": "City not found"
+            }
+
         return {
-            "error": data.get("message", "Failed to fetch weather")
+            "city": city,
+            "weather_condition": data["weather"][0]["description"],
+            "temperature": data["main"]["temp"],
+            "humidity": data["main"]["humidity"]
         }
 
-    weather_info = {
-        "city": data["name"],
-        "temperature": data["main"]["temp"],
-        "feels_like": data["main"]["feels_like"],
-        "humidity": data["main"]["humidity"],
-        "weather": data["weather"][0]["description"],
-        "wind_speed": data["wind"]["speed"]
-    }
+    except Exception as e:
 
-    return weather_info
+        return {
+            "error": str(e)
+        }
