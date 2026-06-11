@@ -6,6 +6,21 @@ from backend.services.hf_llm import generate_hf_insight
 from backend.data.live_cities import live_city_reports
 
 
+# ---------------------------
+# CITY COORDINATES (IMPORTANT)
+# ---------------------------
+CITY_COORDS = {
+    "Pune": (18.5204, 73.8567),
+    "Mumbai": (19.0760, 72.8777),
+    "Nashik": (19.9975, 73.7898),
+    "Delhi": (28.7041, 77.1025),
+    "Bangalore": (12.9716, 77.5946)
+}
+
+
+# ---------------------------
+# CITY EXTRACTION
+# ---------------------------
 def extract_city(query):
 
     query = query.lower()
@@ -17,225 +32,158 @@ def extract_city(query):
     )
 
     if route_match:
-
         source = route_match.group(1).strip().title()
-
         destination = route_match.group(2).strip().title()
-
         return (source, destination)
 
     # SINGLE CITY DETECTION
     patterns = [
-
         r"\bin\s+([a-zA-Z]+)",
-
         r"\bfor\s+([a-zA-Z]+)",
-
         r"\bweather\s+in\s+([a-zA-Z]+)",
-
         r"\btraffic\s+in\s+([a-zA-Z]+)",
-
         r"\btravel\s+to\s+([a-zA-Z]+)"
     ]
 
     for pattern in patterns:
-
         match = re.search(pattern, query)
-
         if match:
-
-            city = match.group(1).strip().title()
-
-            return city
+            return match.group(1).strip().title()
 
     return None
 
 
+# ---------------------------
+# MAIN AGENT
+# ---------------------------
 def city_agent(user_query, history=[]):
 
     city_data = extract_city(user_query)
 
+    # ---------------------------
     # MEMORY FALLBACK
+    # ---------------------------
     if not city_data and history:
-
-        last_user_messages = [
-
-            msg["text"]
-
-            for msg in reversed(history)
-
-            if msg["role"] == "user"
-        ]
-
-        for old_query in last_user_messages:
-
-            old_city_data = extract_city(old_query)
-
-            if old_city_data:
-
-                city_data = old_city_data
-
-                break
+        for msg in reversed(history):
+            if msg["role"] == "user":
+                old = extract_city(msg["text"])
+                if old:
+                    city_data = old
+                    break
 
     if not city_data:
-
         return {
-            "ai_explanation":
-            "Please mention a valid city."
+            "ai_explanation": "Please mention a valid city or route."
         }
 
-    # ROUTE QUERY
+    # ---------------------------
+    # ROUTE CASE
+    # ---------------------------
     if isinstance(city_data, tuple):
 
-        source_city = city_data[0]
-
-        destination_city = city_data[1]
+        source_city, destination_city = city_data
 
         weather_data = get_weather(source_city)
 
         if "error" in weather_data:
-
             return {
-                "ai_explanation":
-                "Unable to fetch city traffic data."
+                "ai_explanation": "Unable to fetch weather data."
             }
 
         weather_result = weather_agent(weather_data)
 
-        # CONVERSATION HISTORY
+        lat, lng = CITY_COORDS.get(
+            source_city,
+            (18.5204, 73.8567)
+        )
+
         conversation_history = ""
-
         for msg in history[-6:]:
-
-            conversation_history += f"""
-            {msg['role']}:
-            {msg['text']}
-            """
+            conversation_history += f"{msg['role']}: {msg['text']}\n"
 
         prompt = f"""
-        You are an advanced smart city AI travel assistant.
+        User is traveling from {source_city} to {destination_city}.
 
-        A user is travelling from {source_city}
-        to {destination_city}.
-
-        Weather in {source_city}:
+        Weather:
         {weather_data}
 
         Traffic Risk:
-        {weather_result['traffic_risk']}
+        {weather_result.get('traffic_risk', 'Unknown')}
 
-        Previous Conversation:
+        Conversation:
         {conversation_history}
 
-        Current User Query:
-        {user_query}
-
-        Analyze:
-        - best departure timing
-        - expected congestion
+        Provide:
+        - best departure time
+        - traffic condition
         - weather impact
-        - highway conditions
-        - smart travel recommendation
-
-        Give a detailed professional response.
+        - travel safety advice
         """
 
         ai_explanation = generate_hf_insight(prompt)
 
         city_report = {
             **weather_result,
-            "ai_insight": ai_explanation
+            "city": source_city,
+            "ai_insight": ai_explanation,
+            "lat": lat,
+            "lng": lng
         }
 
-        already_exists = any(
-            c["city"].lower() == source_city.lower()
-            for c in live_city_reports
-        )
-
-        if not already_exists:
-
+        if not any(c["city"] == source_city for c in live_city_reports):
             live_city_reports.append(city_report)
 
-        return {
-            "ai_explanation": ai_explanation
-        }
+        return {"ai_explanation": ai_explanation}
 
-    # SINGLE CITY QUERY
+    # ---------------------------
+    # SINGLE CITY CASE
+    # ---------------------------
     city = city_data
 
     weather_data = get_weather(city)
 
     if "error" in weather_data:
-
         return {
-            "ai_explanation":
-            f"Could not fetch weather for {city}."
+            "ai_explanation": f"Could not fetch weather for {city}."
         }
 
     weather_result = weather_agent(weather_data)
 
+    lat, lng = CITY_COORDS.get(city, (18.5204, 73.8567))
+
     conversation_history = ""
-
     for msg in history[-6:]:
-
-        conversation_history += f"""
-        {msg['role']}:
-        {msg['text']}
-        """
+        conversation_history += f"{msg['role']}: {msg['text']}\n"
 
     prompt = f"""
-    You are an advanced smart city AI assistant.
-
-    City:
-    {city}
+    City: {city}
 
     Weather:
     {weather_data}
 
     Traffic Risk:
-    {weather_result['traffic_risk']}
+    {weather_result.get('traffic_risk', 'Unknown')}
 
-    Previous Conversation:
+    Conversation:
     {conversation_history}
 
-    Current User Query:
-    {user_query}
-
-    Analyze:
-    - traffic condition
+    Give:
+    - traffic analysis
     - weather impact
-    - congestion probability
-    - travel safety
-    - smart recommendations
-
-    Give a detailed professional response.
+    - travel advice
     """
 
     ai_explanation = generate_hf_insight(prompt)
 
     city_report = {
         **weather_result,
-        "ai_insight": ai_explanation
+        "city": city,
+        "ai_insight": ai_explanation,
+        "lat": lat,
+        "lng": lng
     }
 
-    already_exists = any(
-        c["city"].lower() == city.lower()
-        for c in live_city_reports
-    )
+    if not any(c["city"] == city for c in live_city_reports):
+        live_city_reports.append(city_report)
 
-    updated = False
-
-    for i, c in enumerate(live_city_reports):
-
-        if c["city"].lower() == city_report["city"].lower():
-
-            live_city_reports[i] = city_report
-            updated = True
-            break
-
-        if not updated:
-            live_city_reports.append(city_report)
-
-    return {
-        "ai_explanation": ai_explanation
-    }
+    return {"ai_explanation": ai_explanation}
