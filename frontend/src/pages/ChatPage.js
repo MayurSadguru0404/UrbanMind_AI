@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import Logo from "../components/Logo";
 
 const API_BASE = "http://localhost:8000";
 
@@ -79,13 +80,7 @@ export default function ChatPage() {
       <aside style={s.sidebar}>
         <div style={s.sidebarHeader}>
           <button style={s.backBtn} onClick={() => navigate("/")}>← Back</button>
-          <div style={s.logo}>
-            <div style={s.logoIcon}>U</div>
-            <div>
-              <div style={s.logoTitle}>UrbanMind</div>
-              <div style={s.logoSub}>City Intelligence</div>
-            </div>
-          </div>
+          <Logo/>
         </div>
 
         <div style={s.navSection}>
@@ -296,7 +291,29 @@ const s = {
   sidebarHeader: { padding: "16px 12px 10px", borderBottom: "1px solid #1E1E2E" },
   backBtn:       { background: "none", border: "none", color: "#555570", fontSize: 13, cursor: "pointer", marginBottom: 12, padding: 0 },
   logo:          { display: "flex", alignItems: "center", gap: 8 },
-  logoIcon:      { width: 32, height: 32, background: "linear-gradient(135deg,#7C3AED,#4F46E5)", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 15, color: "white" },
+  logoIcon: {
+  width: 64,
+  height: 64,
+  borderRadius: "18px",
+
+  background: "rgba(255,255,255,0.08)",
+  backdropFilter: "blur(12px)",
+
+  border: "1px solid rgba(255,255,255,0.15)",
+
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+
+  fontSize: 30,
+
+  boxShadow: `
+    0 0 15px rgba(0,229,255,0.4),
+    0 0 35px rgba(0,229,255,0.25)
+  `,
+
+  transition: "all 0.3s ease"
+},
   logoTitle:     { fontWeight: 700, fontSize: 13, color: "#E8E8F0" },
   logoSub:       { fontSize: 10, color: "#555570" },
   navSection:    { padding: "10px 6px", flex: 1 },

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Logo from "../components/Logo";
 
 const MODULES = [
   { id: "traffic", icon: "🚦", label: "Traffic Analysis",  desc: "Real-time congestion, road risk & travel time", color: "#FF6B35" },
@@ -59,13 +60,7 @@ export default function HomePage() {
     <div style={styles.page}>
       {/* NAV */}
       <nav style={styles.nav}>
-        <div style={styles.logo}>
-          <div style={styles.logoIcon}>U</div>
-          <div>
-            <div style={styles.logoTitle}>UrbanMind AI</div>
-            <div style={styles.logoSub}>Smart City Intelligence</div>
-          </div>
-        </div>
+        <Logo/>
         <div style={styles.navLinks}>
           <button style={styles.navBtn} onClick={() => navigate("/dashboard")}>Dashboard</button>
           <button style={styles.navBtn} onClick={() => navigate("/map")}>City Map</button>
@@ -108,7 +103,7 @@ export default function HomePage() {
       {/* MODULES */}
       <div style={styles.section}>
         <div style={styles.sectionLabel}>CITY MODULES</div>
-        <h2 style={styles.sectionTitle}>Six domains. One platform.</h2>
+        <h2 style={styles.sectionTitle}>Four domains. One platform.</h2>
         <div style={styles.moduleGrid}>
           {MODULES.map(mod => (
             <button
@@ -141,7 +136,29 @@ const styles = {
   page:           { minHeight: "100vh", background: "#0A0A0F", color: "#E8E8F0" },
   nav:            { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 40px", borderBottom: "1px solid #1E1E2E", background: "#111118" },
   logo:           { display: "flex", alignItems: "center", gap: 10 },
-  logoIcon:       { width: 36, height: 36, background: "linear-gradient(135deg,#7C3AED,#4F46E5)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 18, color: "white" },
+  logoIcon: {
+  width: 64,
+  height: 64,
+  borderRadius: "18px",
+
+  background: "rgba(255,255,255,0.08)",
+  backdropFilter: "blur(12px)",
+
+  border: "1px solid rgba(255,255,255,0.15)",
+
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+
+  fontSize: 30,
+
+  boxShadow: `
+    0 0 15px rgba(0,229,255,0.4),
+    0 0 35px rgba(0,229,255,0.25)
+  `,
+
+  transition: "all 0.3s ease"
+},
   logoTitle:      { fontWeight: 700, fontSize: 15, color: "#E8E8F0", letterSpacing: "-0.3px" },
   logoSub:        { fontSize: 11, color: "#555570" },
   navLinks:       { display: "flex", alignItems: "center", gap: 8 },

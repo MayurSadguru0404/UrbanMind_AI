@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import Logo from "../components/Logo";
 
 const API_BASE = "http://localhost:8000";
 
@@ -229,11 +230,19 @@ export default function MapPage() {
       {/* HEADER */}
       <div style={s.header}>
         <div style={s.headerLeft}>
-          <button style={s.backBtn} onClick={() => navigate("/")}>← Home</button>
-          <span style={s.title}>🗺️ City Live Map</span>
-          {!loading && (
-            <span style={s.cityCount}>{cities.length} cities monitored</span>
-          )}
+          <button style={s.backBtn} onClick={() => navigate("/")}>
+  ← Home
+</button>
+
+<div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+  <Logo />
+</div>
+
+{!loading && (
+  <span style={s.cityCount}>
+    {cities.length} cities monitored
+  </span>
+)}
           {incidents.length > 0 && (
             <span style={s.incidentBadge}>⚠️ {incidents.length} live incidents</span>
           )}
