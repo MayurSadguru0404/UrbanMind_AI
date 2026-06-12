@@ -21,34 +21,40 @@ CITY_COORDS = {
 # ---------------------------
 # CITY EXTRACTION
 # ---------------------------
+KNOWN_CITIES = {
+    "pune", "mumbai", "delhi", "bangalore", "hyderabad", "chennai",
+    "kolkata", "ahmedabad", "jaipur", "lucknow", "nagpur", "surat",
+    "patna", "nashik", "indore", "bhopal", "vadodara", "coimbatore",
+    "visakhapatnam", "thane", "agra", "meerut", "rajkot", "chandigarh",
+    "new delhi", "bengaluru"
+}
+
 def extract_city(query):
+    query_lower = query.lower()
 
-    query = query.lower()
-
-    # ROUTE DETECTION
+    # ROUTE DETECTION — from X to Y
     route_match = re.search(
-        r"from\s+([a-zA-Z\s]+?)\s+to\s+([a-zA-Z\s]+)",
-        query
+        r"from\s+([a-zA-Z\s]+?)\s+to\s+([a-zA-Z\s]+?)(?:\s|$|\.|\?)",
+        query_lower
     )
-
     if route_match:
         source = route_match.group(1).strip().title()
         destination = route_match.group(2).strip().title()
-        return (source, destination)
+        if source.lower() in KNOWN_CITIES or destination.lower() in KNOWN_CITIES:
+            return (source, destination)
 
-    # SINGLE CITY DETECTION
-    patterns = [
-        r"\bin\s+([a-zA-Z]+)",
-        r"\bfor\s+([a-zA-Z]+)",
-        r"\bweather\s+in\s+([a-zA-Z]+)",
-        r"\btraffic\s+in\s+([a-zA-Z]+)",
-        r"\btravel\s+to\s+([a-zA-Z]+)"
-    ]
-
-    for pattern in patterns:
-        match = re.search(pattern, query)
-        if match:
-            return match.group(1).strip().title()
+    # KNOWN CITY MATCH — scan every word/bigram against known cities list
+    words = query_lower.split()
+    # check bigrams first (e.g. "new delhi")
+    for i in range(len(words) - 1):
+        bigram = words[i] + " " + words[i+1]
+        if bigram in KNOWN_CITIES:
+            return bigram.title()
+    # then single words
+    for word in words:
+        clean = re.sub(r"[^a-z]", "", word)
+        if clean in KNOWN_CITIES:
+            return clean.title()
 
     return None
 
@@ -73,7 +79,15 @@ def city_agent(user_query, history=[]):
 
     if not city_data:
         return {
-            "ai_explanation": "Please mention a valid city or route."
+            "ai_explanation": (
+                "I couldn't detect a city in your query. "
+                "Try asking something like:\n"
+                "• 'What is the traffic situation in Mumbai?'\n"
+                "• 'Weather in Delhi'\n"
+                "• 'Travel from Pune to Mumbai'\n\n"
+                "I currently support Indian cities including Mumbai, Delhi, "
+                "Bangalore, Pune, Hyderabad, Chennai, Kolkata, Jaipur, and more."
+            )
         }
 
     # ---------------------------

@@ -1,24 +1,59 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const MODULES = [
-  { id: "traffic",      icon: "🚦", label: "Traffic",     desc: "Congestion & flow analysis",    color: "#FF6B35" },
-  { id: "air_quality",  icon: "🌫️", label: "Air Quality", desc: "Pollution & AQI monitoring",    color: "#4ECDC4" },
-  { id: "energy",       icon: "⚡", label: "Energy",      desc: "Grid load & consumption",       color: "#FFE66D" },
-  { id: "water",        icon: "💧", label: "Water",       desc: "Supply & infrastructure",       color: "#4A90E2" },
-  { id: "public_safety",icon: "🛡️", label: "Safety",      desc: "Emergency & incident data",     color: "#A8E6CF" },
-  { id: "waste",        icon: "♻️", label: "Waste",       desc: "Collection & recycling",        color: "#88D8B0" },
+  { id: "traffic", icon: "🚦", label: "Traffic Analysis",  desc: "Real-time congestion, road risk & travel time", color: "#FF6B35" },
+  { id: "weather", icon: "🌤️", label: "Weather Intel",     desc: "Live weather conditions for any Indian city",   color: "#4ECDC4" },
+  { id: "route",   icon: "🗺️", label: "Route Planning",    desc: "Best departure time & route safety advice",     color: "#A78BFA" },
+  { id: "risk",    icon: "⚠️", label: "Risk Assessment",   desc: "Traffic risk scoring based on weather data",    color: "#FFE66D" },
 ];
 
-const STATS = [
-  { label: "Population",     value: "3.2M",  trend: "+1.2%", up: true  },
-  { label: "Active Sensors", value: "12,847",trend: "+24",   up: true  },
-  { label: "Avg AQI",        value: "68",    trend: "-3 pts",up: false },
-  { label: "Grid Load",      value: "78%",   trend: "+4%",   up: true  },
-];
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("http://localhost:8000/monitor")
+      .then(r => r.json())
+      .then(data => {
+        const cities = data.cities || [];
+        const total = data.total_cities || 0;
+        const critical = data.critical_cities || 0;
+
+        // Average temperature across all cities
+        const avgTemp = cities.length
+          ? (cities.reduce((sum, c) => sum + (c.temperature || 0), 0) / cities.length).toFixed(1)
+          : "N/A";
+
+        // Average humidity
+        const avgHumidity = cities.length
+          ? Math.round(cities.reduce((sum, c) => sum + (c.humidity || 0), 0) / cities.length)
+          : "N/A";
+
+        // Count high risk cities
+        const highRisk = cities.filter(c => c.traffic_risk === "High").length;
+
+        setStats([
+          { label: "Cities Monitored", value: total,             trend: "Live",         up: true  },
+          { label: "Critical Cities",  value: critical,          trend: critical > 0 ? "⚠ Alert" : "✓ Clear", up: critical === 0 },
+          { label: "Avg Temperature",  value: `${avgTemp}°C`,    trend: "Real-time",    up: true  },
+          { label: "Avg Humidity",     value: `${avgHumidity}%`, trend: "Real-time",    up: true  },
+          { label: "High Risk Cities", value: highRisk,          trend: highRisk > 0 ? "⚠ Alert" : "✓ All Clear", up: highRisk === 0 },
+        ]);
+      })
+      .catch(() => {
+        setStats([
+          { label: "Cities Monitored", value: "—", trend: "Offline", up: false },
+          { label: "Critical Cities",  value: "—", trend: "Offline", up: false },
+          { label: "Avg Temperature",  value: "—", trend: "Offline", up: false },
+          { label: "Avg Humidity",     value: "—", trend: "Offline", up: false },
+          { label: "High Risk Cities", value: "—", trend: "Offline", up: false },
+        ]);
+      })
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   return (
     <div style={styles.page}>
@@ -47,7 +82,7 @@ export default function HomePage() {
         </h1>
         <p style={styles.heroDesc}>
           UrbanMind AI connects LLMs, RAG pipelines, and real-time sensor data
-          to give city operators instant, accurate answers about traffic, air, energy, water, safety, and waste.
+          to give city operators instant, accurate answers about traffic, weather, route planning and risk assesment.
         </p>
         <div style={styles.heroBtns}>
           <button style={styles.btnPrimary} onClick={() => navigate("/chat")}>Start Asking →</button>
@@ -57,7 +92,11 @@ export default function HomePage() {
 
       {/* STATS */}
       <div style={styles.statsRow}>
-        {STATS.map(s => (
+        {statsLoading ? (
+          <div style={{ padding: "20px 28px", color: "#444460", fontSize: 13 }}>
+            Loading live city data...
+          </div>
+        ) : (stats || []).map(s => (
           <div key={s.label} style={styles.statCard}>
             <div style={styles.statValue}>{s.value}</div>
             <div style={styles.statLabel}>{s.label}</div>
@@ -92,7 +131,7 @@ export default function HomePage() {
 
       {/* FOOTER */}
       <footer style={styles.footer}>
-        <span style={{ color: "#333345" }}>UrbanMind AI — Built with FastAPI + React + RAG</span>
+        <span style={{ color: "#333345" }}>UrbanMind AI</span>
       </footer>
     </div>
   );

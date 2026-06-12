@@ -107,12 +107,12 @@ export default function Dashboard() {
           <div style={s.chartTitle}>Quick Actions</div>
           <div style={s.actionsRow}>
             {[
-              { label: "Ask about Traffic", module: "traffic",       icon: "🚦", color: "#FF6B35" },
-              { label: "Check Air Quality", module: "air_quality",   icon: "🌫️", color: "#4ECDC4" },
-              { label: "Energy Report",     module: "energy",        icon: "⚡", color: "#FFE66D" },
-              { label: "Water Status",      module: "water",         icon: "💧", color: "#4A90E2" },
-              { label: "Safety Briefing",   module: "public_safety", icon: "🛡️", color: "#A8E6CF" },
-              { label: "Open City Map",     module: null,            icon: "🗺️", color: "#7C3AED", nav: "/map" },
+              { label: "Traffic in Mumbai",      module: "traffic", icon: "🚦", color: "#FF6B35" },
+{ label: "Weather in Delhi",       module: "weather", icon: "🌤️", color: "#4ECDC4" },
+{ label: "Pune → Mumbai Route",    module: "route",   icon: "🗺️", color: "#A78BFA" },
+{ label: "Risk Report Bangalore",  module: "risk",    icon: "⚠️", color: "#FFE66D" },
+{ label: "Travel Advisory Chennai",module: "traffic", icon: "🚌", color: "#88D8B0" },
+{ label: "Open City Map",          module: null,      icon: "🗺️", color: "#7C3AED", nav: "/map" },
             ].map(a => (
               <button
                 key={a.label}

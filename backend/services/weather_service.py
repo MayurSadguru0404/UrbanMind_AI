@@ -28,10 +28,12 @@ def get_weather(city):
             }
 
         return {
-            "city": city,
+            "city": data.get("name", city),
             "weather_condition": data["weather"][0]["description"],
             "temperature": data["main"]["temp"],
-            "humidity": data["main"]["humidity"]
+            "humidity": data["main"]["humidity"],
+            "lat": data["coord"]["lat"],
+            "lng": data["coord"]["lon"],
         }
 
     except Exception as e:

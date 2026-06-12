@@ -4,20 +4,19 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 const API_BASE = "http://localhost:8000";
 
 const MODULES = [
-  { id: "traffic",       icon: "🚦", label: "Traffic",     color: "#FF6B35" },
-  { id: "air_quality",   icon: "🌫️", label: "Air Quality", color: "#4ECDC4" },
-  { id: "energy",        icon: "⚡", label: "Energy",      color: "#FFE66D" },
-  { id: "water",         icon: "💧", label: "Water",       color: "#4A90E2" },
-  { id: "public_safety", icon: "🛡️", label: "Safety",      color: "#A8E6CF" },
-  { id: "waste",         icon: "♻️", label: "Waste",       color: "#88D8B0" },
+  { id: "traffic",  icon: "🚦", label: "Traffic & Travel",  color: "#FF6B35" },
+  { id: "weather",  icon: "🌤️", label: "Weather",           color: "#4ECDC4" },
+  { id: "route",    icon: "🗺️", label: "Route Planning",    color: "#A78BFA" },
+  { id: "risk",     icon: "⚠️", label: "Risk Assessment",   color: "#FFE66D" },
 ];
 
 const SUGGESTIONS = [
-  "What are the peak traffic hours in the city center?",
-  "How is air quality trending this week?",
-  "Which areas have the highest energy consumption?",
-  "Are there any water supply issues reported today?",
-  "What emergency incidents happened in the last 24 hours?",
+  "What is the traffic situation in Mumbai today?",
+  "How is the weather in Delhi right now?",
+  "Should I travel from Pune to Mumbai today?",
+  "What is the traffic risk in Bangalore?",
+  "Give me a travel advisory for Chennai.",
+  "Weather and road conditions in Hyderabad?",
 ];
 
 export default function ChatPage() {
@@ -53,7 +52,7 @@ export default function ChatPage() {
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
-      const reply = data.ai_explaination || data.response || data.answer || JSON.stringify(data);
+      const reply = data.ai_explanation || data.response || data.answer || JSON.stringify(data);
       setMessages(prev => [...prev, {
         id: Date.now() + 1, role: "assistant", content: reply,
         module: activeModule, sources: data.sources || [], timestamp: new Date(),
@@ -191,6 +190,24 @@ function MessageBubble({ msg }) {
   const mod = MODULES.find(m => m.id === msg.module);
   const time = msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+  function formatResponse(text) {
+    // Split on sentence endings followed by capital letter or bullet keywords
+    const sentences = text
+      .replace(/\.\s+([A-Z])/g, ".\n$1")
+      .replace(/,\s+(For|The|As|Overall|However|This|It's|Drivers|Consider|Whether)/g, ".\n$1")
+      .split("\n")
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    // Group into sections: first sentence is summary, rest are details
+    const summary = sentences[0];
+    const details = sentences.slice(1);
+
+    return { summary, details };
+  }
+
+  const { summary, details } = isUser ? { summary: msg.content, details: [] } : formatResponse(msg.content);
+
   return (
     <div style={{ ...s.msg, ...(isUser ? s.msgUser : {}) }}>
       <div style={{ ...s.avatar, ...(isUser ? s.avatarUser : s.avatarBot) }}>
@@ -205,13 +222,47 @@ function MessageBubble({ msg }) {
           ...(isUser ? s.bubbleUser : s.bubbleBot),
           ...(msg.isError ? s.bubbleError : {}),
         }}>
-          {msg.content.split("\n").map((line, i) => (
-            <p key={i} style={{ margin: "0 0 3px" }}>{line || <br />}</p>
-          ))}
-          {msg.sources?.length > 0 && (
-            <div style={s.sources}>
-              <span style={s.sourcesLabel}>Sources</span>
-              {msg.sources.map((src, i) => <span key={i} style={s.sourceChip}>{src}</span>)}
+          {isUser ? (
+            <p style={{ margin: 0 }}>{msg.content}</p>
+          ) : (
+            <div>
+              {/* Summary line — highlighted */}
+              <p style={{
+                margin: "0 0 10px",
+                color: "#E8E8F0",
+                fontWeight: 500,
+                lineHeight: 1.6,
+                paddingBottom: 10,
+                borderBottom: "1px solid #2A2A3A"
+              }}>
+                {summary}
+              </p>
+
+              {/* Detail sentences as bullet points */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                {details.map((sentence, i) => (
+                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <span style={{
+                      width: 5, height: 5, borderRadius: "50%",
+                      background: mod ? mod.color : "#7C3AED",
+                      flexShrink: 0, marginTop: 7
+                    }} />
+                    <span style={{ fontSize: 13, color: "#B0B0CC", lineHeight: 1.65 }}>
+                      {sentence}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Sources if any */}
+              {msg.sources?.length > 0 && (
+                <div style={s.sources}>
+                  <span style={s.sourcesLabel}>Sources</span>
+                  {msg.sources.map((src, i) => (
+                    <span key={i} style={s.sourceChip}>{src}</span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
