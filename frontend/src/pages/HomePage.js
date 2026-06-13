@@ -9,6 +9,7 @@ const MODULES = [
   { id: "risk",    icon: "⚠️", label: "Risk Assessment",   desc: "Traffic risk scoring based on weather data",    color: "#FFE66D" },
 ];
 
+const API_BASE=process.env.REACT_APP_URL || "http://localhost:8000";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function HomePage() {
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8000/monitor")
+    fetch(`${API_BASE}/monitor`)
       .then(r => r.json())
       .then(data => {
         const cities = data.cities || [];

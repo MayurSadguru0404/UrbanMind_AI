@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import Logo from "../components/Logo";
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 // Fix Leaflet broken icon
 delete L.Icon.Default.prototype._getIconUrl;
