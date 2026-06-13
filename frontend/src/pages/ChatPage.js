@@ -66,7 +66,7 @@ export default function ChatPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeModule, loading]);
+  }, [activeModule, loading,messages]);
 
   const handleKey = (e) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
