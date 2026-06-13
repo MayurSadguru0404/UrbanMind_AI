@@ -79,7 +79,7 @@ function FlyToCity({ coords }) {
     if (coords && coords[0] && coords[1]) {
       map.flyTo([coords[0], coords[1]], 12, { duration: 1.8, easeLinearity: 0.25 });
     }
-  }, [coords]);
+  }, [coords,map]);
   return null;
 }
 
@@ -90,7 +90,7 @@ function ResetView({ trigger }) {
     if (trigger) {
       map.flyTo([20.5937, 78.9629], 5, { duration: 1.5 });
     }
-  }, [trigger]);
+  }, [trigger,map]);
   return null;
 }
 
