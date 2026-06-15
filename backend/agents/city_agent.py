@@ -5,10 +5,6 @@ from backend.agents.weather_agent import weather_agent
 from backend.services.hf_llm import generate_hf_insight
 from backend.data.live_cities import live_city_reports
 
-
-# ---------------------------
-# CITY COORDINATES (IMPORTANT)
-# ---------------------------
 CITY_COORDS = {
     "Pune": (18.5204, 73.8567),
     "Mumbai": (19.0760, 72.8777),
@@ -17,10 +13,6 @@ CITY_COORDS = {
     "Bangalore": (12.9716, 77.5946)
 }
 
-
-# ---------------------------
-# CITY EXTRACTION
-# ---------------------------
 KNOWN_CITIES = {
     "pune", "mumbai", "delhi", "bangalore", "hyderabad", "chennai",
     "kolkata", "ahmedabad", "jaipur", "lucknow", "nagpur", "surat",
@@ -32,7 +24,6 @@ KNOWN_CITIES = {
 def extract_city(query):
     query_lower = query.lower()
 
-    # ROUTE DETECTION — from X to Y
     route_match = re.search(
         r"from\s+([a-zA-Z\s]+?)\s+to\s+([a-zA-Z\s]+?)(?:\s|$|\.|\?)",
         query_lower
@@ -43,14 +34,11 @@ def extract_city(query):
         if source.lower() in KNOWN_CITIES or destination.lower() in KNOWN_CITIES:
             return (source, destination)
 
-    # KNOWN CITY MATCH — scan every word/bigram against known cities list
     words = query_lower.split()
-    # check bigrams first (e.g. "new delhi")
     for i in range(len(words) - 1):
         bigram = words[i] + " " + words[i+1]
         if bigram in KNOWN_CITIES:
             return bigram.title()
-    # then single words
     for word in words:
         clean = re.sub(r"[^a-z]", "", word)
         if clean in KNOWN_CITIES:
@@ -58,17 +46,9 @@ def extract_city(query):
 
     return None
 
-
-# ---------------------------
-# MAIN AGENT
-# ---------------------------
 def city_agent(user_query, history=[]):
 
     city_data = extract_city(user_query)
-
-    # ---------------------------
-    # MEMORY FALLBACK
-    # ---------------------------
     if not city_data and history:
         for msg in reversed(history):
             if msg["role"] == "user":
@@ -90,9 +70,6 @@ def city_agent(user_query, history=[]):
             )
         }
 
-    # ---------------------------
-    # ROUTE CASE
-    # ---------------------------
     if isinstance(city_data, tuple):
 
         source_city, destination_city = city_data
@@ -149,9 +126,6 @@ def city_agent(user_query, history=[]):
 
         return {"ai_explanation": ai_explanation}
 
-    # ---------------------------
-    # SINGLE CITY CASE
-    # ---------------------------
     city = city_data
 
     weather_data = get_weather(city)
