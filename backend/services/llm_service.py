@@ -1,8 +1,5 @@
 import os
 
-# Later we will plug real LLM API here
-# For now we simulate LLM-style output structure
-
 def generate_llm_summary(city_data):
 
     city = city_data["city"]
@@ -19,7 +16,6 @@ def generate_llm_summary(city_data):
     Generate a short, human-like urban traffic insight.
     """
 
-    # Simulated "LLM response"
     response = (
         f"UrbanMind Insight: In {city}, current conditions show {weather} "
         f"with temperature around {temp}°C. "
